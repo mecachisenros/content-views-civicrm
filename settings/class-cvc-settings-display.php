@@ -118,7 +118,7 @@ class Content_Views_CiviCRM_Settings_Display {
 	 */
 	public function contact_fields_display_settings() {
 		return [
-			'label' => [ 'text' => __( 'Contact settings', $this->cvc->get_domain() ) ],
+			'label' => [ 'text' => __( 'Contact settings', 'content-views-civicrm' ) ],
 			'extra_setting' => [
 				'params' => [
 					'wrap-class' => PT_CV_Html::html_group_class(),
@@ -132,7 +132,7 @@ class Content_Views_CiviCRM_Settings_Display {
 					'params' => $this->contact_fields_group_options()
 					/*[
 						[
-							'label' => [ 'text' => __( 'Core fields', $this->cvc->get_domain() ) ],
+							'label' => [ 'text' => __( 'Core fields', 'content-views-civicrm' ) ],
 							'extra_setting'	 => [
 								'params' => [
 									'group-class' => PT_CV_PREFIX . 'field-setting' . ' ' . PT_CV_PREFIX . 'contact-field-settings',
@@ -161,7 +161,7 @@ class Content_Views_CiviCRM_Settings_Display {
 		return [
 			[
 				'label' => [
-					'text' => __( 'Contact fields', $this->cvc->get_domain() )
+					'text' => __( 'Contact fields', 'content-views-civicrm' )
 				],
 				'extra_setting'	 => [
 					'params' => [
@@ -199,7 +199,7 @@ class Content_Views_CiviCRM_Settings_Display {
 					[
 						'type'		 => 'checkbox',
 						'name'		 => 'civi-contact-' . $field['name'],
-						'options'	 => PT_CV_Values::yes_no( 'yes', __( $field['title'], $this->cvc->get_domain() ) )
+						'options'	 => PT_CV_Values::yes_no( 'yes', __( $field['title'], 'content-views-civicrm' ) )
 					]
 				]
 			];

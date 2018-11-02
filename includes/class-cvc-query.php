@@ -93,8 +93,8 @@ class Content_Views_CiviCRM_Query {
 			// 			[ 'contact_type', 'IN', $args['contact_type'] ],
 			// 			[ 'contact_sub_type', 'IN', $args['contact_type'] ], 
 			// 			[ 'AND', [ 
-			// 				[ 'id.group', 'IN', $args['group_include'] ],
-			// 				[ 'id.group', 'NOT IN', $args['group_exclude'] ]
+			// 				[ 'group.id', 'IN', $args['group_include'] ],
+			// 				[ 'group.id', 'NOT IN', $args['group_exclude'] ]
 			// 			]
 			// 		] )
 			// 	->setLimit( 100 )

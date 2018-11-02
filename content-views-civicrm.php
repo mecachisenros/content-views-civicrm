@@ -7,6 +7,8 @@
  * Author URI: https://github.com/mecachisenros
  * Plugin URI: https://github.com/mecachisenros/content-views-civicrm
  * GitHub Plugin URI: mecachisenros/content-views-civicrm
+ * Text Domain: content-views-civicrm
+ * Domain Path: /languages
  */
 
 class Content_Views_CiviCRM {
@@ -31,13 +33,6 @@ class Content_Views_CiviCRM {
 	 * @var string $url
 	 */
 	private $url;
-
-	/**
-	 * Text domain.
-	 * @since 0.1
-	 * @var string
-	 */
-	private $domain = 'content-views-civicrm';
 
 	/**
 	 * Query management object.
@@ -151,14 +146,6 @@ class Content_Views_CiviCRM {
 		return $this->url;
 	}
 
-	/**
-	 * Plugins text domain.
-	 * @since 0.1
-	 * @return string $domain
-	 */
-	public function get_domain() {
-		return $this->domain;
-	}
 }
 
 function CVC() {

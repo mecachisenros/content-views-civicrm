@@ -42,13 +42,13 @@ class Content_Views_CiviCRM_Settings_Filter {
 	 * @return array $types Filtered post types list
 	 */
 	public function filter_post_types_list( $types ) {
-		$types['civicrm_contact'] = __( 'Contact', $this->cvc->get_domain() );
+		$types['civicrm_contact'] = __( 'Contact', 'content-views-civicrm' );
 		return $types;
 	}
 
 	public function contact_filters() {
 		return [
-			'label' => [ 'text' => __( 'Contact filters', $this->cvc->get_domain() ) ],
+			'label' => [ 'text' => __( 'Contact filters', 'content-views-civicrm' ) ],
 			'extra_setting'	 => [
 				'params' => [ 
 					'wrap-class' => PT_CV_Html::html_panel_group_class(),
@@ -62,7 +62,7 @@ class Content_Views_CiviCRM_Settings_Filter {
 					'params' => [
 						// contact type
 						[
-							'label' => [ 'text' => __( 'Contact types', $this->cvc->get_domain() ) ],
+							'label' => [ 'text' => __( 'Contact types', 'content-views-civicrm' ) ],
 							'params' => [
 								[
 									'type' => 'select',
@@ -71,13 +71,13 @@ class Content_Views_CiviCRM_Settings_Filter {
 									'class' => 'select2',
 									'multiple' => 1,
 									'std' => 'Organization',
-									'desc' => __( 'Filter by contact types.', $this->cvc->get_domain() )
+									'desc' => __( 'Filter by contact types.', 'content-views-civicrm' )
 								]
 							]
 						],
 						// contact sub type
 						// [
-						// 	'label' => [ 'text' => __( 'Contact sub types', $this->cvc->get_domain() ) ],
+						// 	'label' => [ 'text' => __( 'Contact sub types', 'content-views-civicrm' ) ],
 						// 	'params' => [
 						// 		[
 						// 			'type' => 'select',
@@ -86,13 +86,13 @@ class Content_Views_CiviCRM_Settings_Filter {
 						// 			'class' => 'select2',
 						// 			'multiple' => 1,
 						// 			'std' => 'Organization',
-						// 			'desc' => __( 'Filter by contact sub types.', $this->cvc->get_domain() )
+						// 			'desc' => __( 'Filter by contact sub types.', 'content-views-civicrm' )
 						// 		]
 						// 	]
 						// ],
 						// groups include
 						[
-							'label' => [ 'text' => __( 'Groups include', $this->cvc->get_domain() ) ],
+							'label' => [ 'text' => __( 'Groups include', 'content-views-civicrm' ) ],
 							'params' => [
 								[
 									'type' => 'select',
@@ -101,13 +101,13 @@ class Content_Views_CiviCRM_Settings_Filter {
 									'class' => 'select2',
 									'multiple' => 1,
 									'std' => '',
-									'desc' => __( 'Filter contacts only in those groups.', $this->cvc->get_domain() )
+									'desc' => __( 'Filter contacts only in those groups.', 'content-views-civicrm' )
 								]
 							]
 						],
 						// groups exclude
 						[
-							'label' => [ 'text' => __( 'Groups exclude', $this->cvc->get_domain() ) ],
+							'label' => [ 'text' => __( 'Groups exclude', 'content-views-civicrm' ) ],
 							'params' => [
 								[
 									'type' => 'select',
@@ -116,7 +116,7 @@ class Content_Views_CiviCRM_Settings_Filter {
 									'class' => 'select2',
 									'multiple' => 1,
 									'std' => '',
-									'desc' => __( 'Exclude contacts in those groups.', $this->cvc->get_domain() )
+									'desc' => __( 'Exclude contacts in those groups.', 'content-views-civicrm' )
 								]
 							]
 						]
