@@ -49,6 +49,14 @@ class Content_Views_CiviCRM {
 	protected $settings;
 
 	/**
+	 * CiviCRM Api object.
+	 *
+	 * @since 0.1
+	 * @var Content_Views_CiviCRM_Api
+	 */
+	public $api;
+
+	/**
 	 * The plugin instance.
 	 * @since 0.1
 	 * @var object $instance The plugin instance
@@ -64,14 +72,15 @@ class Content_Views_CiviCRM {
 		if ( ! isset( self::$instance ) ) {
 			// instantiate
 			self::$instance = new self;
-			
-			if( self::$instance->check_dependencies() ) 
-				self::$instance->init();
+
+			self::$instance->init();
+
 			/**
 			 * Broadcast that this plugin is loaded.
 			 * @since 0.1
 			 */
 			do_action( 'content_views_civicrm_loaded' );
+
 		}
 		return self::$instance;
 	}
@@ -117,6 +126,14 @@ class Content_Views_CiviCRM {
 	private function include_files() {
 		include $this->path . 'includes/class-cvc-query.php';
 		include $this->path . 'includes/class-cvc-settings.php';
+		include $this->path . 'includes/class-cvc-api.php';
+
+		/**
+		 * Broadcast that this plugin's files have bee included.
+		 *
+		 * @since 0.1
+		 */
+		do_action( 'content_views_civicrm_files_included' );
 	}
 
 	/**
@@ -124,8 +141,43 @@ class Content_Views_CiviCRM {
 	 * @since 0.1
 	 */
 	private function setup_objects() {
+
+		/**
+		 * Filter CiviCRM Api object.
+		 *
+		 * Hook your own api wrapper implementation, the only
+		 * requirement is that it must have a 'call' and 'call_values' method.
+		 *
+		 * @since 0.1
+		 */
+		$this->api = apply_filters( 'content_views_civicrm_api_object', false );
+
+		if ( ! is_object( $this->api ) && ! $this->check_dependencies() ) {
+
+			add_action( 'admin_notices', [ $this, 'show_notice' ] );
+
+			return;
+
+		}
+
+		$this->api = $this->api ? $this->api : (new Content_Views_CiviCRM_Api);
 		$this->query = new Content_Views_CiviCRM_Query( $this );
 		$this->settings = new Content_Views_CiviCRM_Settings( $this );
+
+	}
+
+	/**
+	 * Shows admin notice.
+	 *
+	 * @since 0.1
+	 */
+	public function show_notice() {
+
+		printf(
+			__( '<div class="notice notice-error"><p>It looks like CiviCRM is not activated, Content Views CiviCRM integration requires CiviCRM to be installed and activated, alternatively you can install the <a href="%s" title="Content Views CiviCRM Remote Settings">Content Views CiviCRM Remote plugin</a> to connect to a remote CiviCRM instance.</p></div>', 'content-views-civicrm' ),
+			admin_url( 'https://github.com/mecachisenros/content-views-civicrm-remote' )
+		);
+
 	}
 
 	/**

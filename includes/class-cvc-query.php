@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Content_Views_CiviCRM_Query class. 
+ * Content_Views_CiviCRM_Query class.
  */
 class Content_Views_CiviCRM_Query {
 
@@ -45,25 +45,35 @@ class Content_Views_CiviCRM_Query {
 		if ( is_array( $pt_cv_glb[$pt_cv_id] ) ) {
 			// view settings
 			$view_settings = $pt_cv_glb[$pt_cv_id]['view_settings'];
-			
+
+			$api_params = [];
+
 			if ( ! empty( $view_settings[PT_CV_PREFIX . 'contact_type'] ) )
-				$args['contact_type'] = $view_settings[ PT_CV_PREFIX . 'contact_type'];
+				$api_params['contact_type'] = [ 'IN' => $view_settings[ PT_CV_PREFIX . 'contact_type'] ];
+
 			if ( ! empty( $view_settings[PT_CV_PREFIX . 'contact_sub_type'] ) )
-				$args['contact_sub_type'] = $view_settings[PT_CV_PREFIX . 'contact_sub_type'];
+				$api_params['contact_sub_type'] = [ 'IN' => $view_settings[PT_CV_PREFIX . 'contact_sub_type'] ];
+
 			if ( ! empty( $view_settings[PT_CV_PREFIX . 'group_include'] ) )
-				$args['group_include'] = $view_settings[PT_CV_PREFIX . 'group_include'];
+				$api_params['group_include'] = $view_settings[PT_CV_PREFIX . 'group_include'];
+
 			if ( ! empty( $view_settings[PT_CV_PREFIX . 'group_exclude'] ) )
-				$args['group_exclude'] = $view_settings[PT_CV_PREFIX . 'group_exclude'];
+				$api_params['group_exclude'] = $view_settings[PT_CV_PREFIX . 'group_exclude'];
+
 			if ( ! empty( $view_settings[PT_CV_PREFIX . 'limit'] ) )
-				$args['limit'] = $view_settings[PT_CV_PREFIX . 'limit'];
+				$api_params['options'] = [ 'limit' => $view_settings[PT_CV_PREFIX . 'limit'] ];
+
+			$args['civicrm_api_params'] = $api_params;
+
 		}
+
 
 		return $args;
 	}
 
 	/**
 	 * Filters query parameters before they WP_Query is instantiated.
-	 * @since 0.1  
+	 * @since 0.1
 	 * @param array $args WP_Query parameters
 	 * @return array $args WP_Query parameters
 	 */
@@ -78,7 +88,7 @@ class Content_Views_CiviCRM_Query {
 	/**
 	 * Bypasses the WP_Query.
 	 *
-	 * When quering a Contact post type bypasses the WP_Query 
+	 * When quering a Contact post type bypasses the WP_Query
 	 * and use Civi's API to retrieve Contacts.
 	 * @since 0.1
 	 * @uses 'posts_pre_query'
@@ -87,26 +97,8 @@ class Content_Views_CiviCRM_Query {
 	public function bypass_query( $args ) {
 		// bypass query
 		add_filter( 'posts_pre_query', function( $posts, $class ) use ( $args ) {
-	
-			// $contacts = \Civi\Api4\Contact::get()
-			// 	->addClause( 'OR', 
-			// 			[ 'contact_type', 'IN', $args['contact_type'] ],
-			// 			[ 'contact_sub_type', 'IN', $args['contact_type'] ], 
-			// 			[ 'AND', [ 
-			// 				[ 'group.id', 'IN', $args['group_include'] ],
-			// 				[ 'group.id', 'NOT IN', $args['group_exclude'] ]
-			// 			]
-			// 		] )
-			// 	->setLimit( 100 )
-			// 	->execute();
 
-			$contacts = \Civi\Api4\Contact::get()
-				->addClause( 'OR', 
-					[ 'contact_type', 'IN', $args['contact_type'] ],
-					[ 'contact_sub_type', 'IN', $args['contact_type'] ]
-				)
-				->setLimit( $args['limit'] )
-				->execute();
+			$contacts = $this->cvc->api->call_values( 'Contact', 'get', $args['civicrm_api_params'] );
 
 			// mock WP_Posts contacts
 			foreach ( $contacts as $contact ) {

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Content_Views_CiviCRM_Settings_Filter class. 
+ * Content_Views_CiviCRM_Settings_Filter class.
  */
 class Content_Views_CiviCRM_Settings_Filter {
 
@@ -50,7 +50,7 @@ class Content_Views_CiviCRM_Settings_Filter {
 		return [
 			'label' => [ 'text' => __( 'Contact filters', 'content-views-civicrm' ) ],
 			'extra_setting'	 => [
-				'params' => [ 
+				'params' => [
 					'wrap-class' => PT_CV_Html::html_panel_group_class(),
 					'wrap-id'	 => PT_CV_Html::html_panel_group_id( PT_CV_Functions::string_random() )
 				]
@@ -76,20 +76,20 @@ class Content_Views_CiviCRM_Settings_Filter {
 							]
 						],
 						// contact sub type
-						// [
-						// 	'label' => [ 'text' => __( 'Contact sub types', 'content-views-civicrm' ) ],
-						// 	'params' => [
-						// 		[
-						// 			'type' => 'select',
-						// 			'name' => 'contact_sub_type',
-						// 			'options' => $this->contact_sub_type_options(),
-						// 			'class' => 'select2',
-						// 			'multiple' => 1,
-						// 			'std' => 'Organization',
-						// 			'desc' => __( 'Filter by contact sub types.', 'content-views-civicrm' )
-						// 		]
-						// 	]
-						// ],
+						[
+							'label' => [ 'text' => __( 'Contact sub types', 'content-views-civicrm' ) ],
+							'params' => [
+								[
+									'type' => 'select',
+									'name' => 'contact_sub_type',
+									'options' => $this->contact_sub_type_options(),
+									'class' => 'select2',
+									'multiple' => 1,
+									'std' => 'Organization',
+									'desc' => __( 'Filter by contact sub types.', 'content-views-civicrm' )
+								]
+							]
+						],
 						// groups include
 						[
 							'label' => [ 'text' => __( 'Groups include', 'content-views-civicrm' ) ],
@@ -132,18 +132,18 @@ class Content_Views_CiviCRM_Settings_Filter {
 	 * @return array $types Contact types
 	 */
 	public function contact_type_options() {
-		$contact_types_result = \Civi\Api4\ContactType::get()
-			->addWhere( 'is_active', '=', 1 )
-			// ->addWhere( 'parent_id', 'IS NULL' )
-			->setLimit( 0 )
-  			->execute();
 
-		$types = array_reduce( ( array ) $contact_types_result, function( $types, $type ) {
+		$contact_types_result = $this->cvc->api->call_values( 'ContactType', 'get', [
+			'is_active' => 1,
+			'parent_id' => [ 'IS NULL' => 1 ],
+			'options' => [ 'limit' => 0 ]
+		] );
+
+		return array_reduce( ( array ) $contact_types_result, function( $types, $type ) {
 			$types[$type['name']] = $type['name'];
 			return $types;
 		}, [] );
 
-		return $types;
 	}
 
 	/**
@@ -152,18 +152,18 @@ class Content_Views_CiviCRM_Settings_Filter {
 	 * @return array $types Contact types
 	 */
 	public function contact_sub_type_options() {
-		$contact_types_result = \Civi\Api4\ContactType::get()
-			->addWhere( 'is_active', '=', 1 )
-			->addWhere( 'parent_id', 'IS NOT NULL' )
-			->setLimit( 0 )
-  			->execute();
 
-		$types = array_reduce( ( array ) $contact_types_result, function( $types, $type ) {
+		$contact_types_result = $this->cvc->api->call_values( 'ContactType', 'get', [
+			'is_active' => 1,
+			'parent_id' => [ 'IS NOT NULL' => 1 ],
+			'options' => [ 'limit' => 0 ]
+		] );
+
+		return array_reduce( ( array ) $contact_types_result, function( $types, $type ) {
 			$types[$type['name']] = $type['name'];
 			return $types;
 		}, [] );
 
-		return $types;
 	}
 
 	/**
@@ -172,16 +172,16 @@ class Content_Views_CiviCRM_Settings_Filter {
 	 * @return array $types Groups
 	 */
 	public function group_options() {
-		$groups_result = \Civi\Api4\Group::get()
-			->addWhere( 'is_active', '=', 1 )
-			->setLimit( 0 )
-  			->execute();
 
-		$groups = array_reduce( ( array ) $groups_result, function( $groups, $group ) {
-			$groups[$group['id']] = $group['name'];
+		$groups_result = $this->cvc->api->call_values( 'Group', 'get', [
+			'is_active' => 1,
+			'options' => [ 'limit' => 0 ]
+		] );
+
+		return array_reduce( ( array ) $groups_result, function( $groups, $group ) {
+			$groups[$group['id']] = $group['title'];
 			return $groups;
 		}, [] );
 
-		return $groups;
 	}
 }

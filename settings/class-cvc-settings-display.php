@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Content_Views_CiviCRM_Settings_Display class. 
+ * Content_Views_CiviCRM_Settings_Display class.
  */
 class Content_Views_CiviCRM_Settings_Display {
 
@@ -11,6 +11,14 @@ class Content_Views_CiviCRM_Settings_Display {
 	 * @var object Reference to plugin instance
 	 */
 	protected $cvc;
+
+	/**
+	 * Contact fields.
+	 *
+	 * @since 0.1
+	 * @var array
+	 */
+	public $contact_fields = [];
 
 	/**
 	 * Constructor.
@@ -33,6 +41,11 @@ class Content_Views_CiviCRM_Settings_Display {
 		add_filter( PT_CV_PREFIX_ . 'all_display_settings', [ $this, 'filter_all_display_settings' ] );
 
 		add_filter( PT_CV_PREFIX_ . 'field_item_html', [ $this, 'contact_fields_html' ], 5, 3 );
+
+		add_filter( PT_CV_PREFIX_ . 'dargs_others', function( $dargs, $post_idx ) {
+
+			return $dargs;
+		}, 20, 2 );
 	}
 
 	/**
@@ -42,14 +55,10 @@ class Content_Views_CiviCRM_Settings_Display {
 	 * @return array $args Filtered display args
 	 */
 	public function filter_all_display_settings( $args ) {
-		
-		$contact_settings = PT_CV_Functions::settings_values_by_prefix( PT_CV_PREFIX . 'civi-contact-', true );
 
-		$args['contact-settings'] = $contact_settings;
-		
-		foreach ( $contact_settings as $name => $value ) {
-			$args['fields'][] = $name;
-		}
+		$contact_fields = PT_CV_Functions::settings_values_by_prefix( PT_CV_PREFIX . 'contact_fields', true );
+
+		$args['fields'] = array_merge( $args['fields'], reset( $contact_fields ) );
 
 		return $args;
 	}
@@ -63,10 +72,13 @@ class Content_Views_CiviCRM_Settings_Display {
 	 */
 	public function contact_fields_html( $html, $field_name, $post ) {
 
-		if ( $post->post_type == 'civicrm_contact' )
-			return $html = '<div class="col-md-12 pt-cv-ctf-column"><div class="pt-cv-custom-fields pt-cv-ctf-post_field_1"><div class="pt-cv-ctf-value">' . $post->$field_name . '</div></div></div>';
+		if ( $post->post_type != 'civicrm_contact' ) return $html;
 
-		return $html;
+		if ( empty( $this->contact_fields ) )
+			$this->contact_fields = $this->get_contact_fields_options();
+
+		return $html = "<div class='col-md-12 pt-cv-ctf-column'><div class='pt-cv-custom-fields pt-cv-ctf-post_field_1'><div class='pt-cv-ctf-value'><strong>{$this->contact_fields[$field_name]}</strong>: {$post->$field_name}</div></div></div>";
+
 	}
 
 
@@ -117,66 +129,38 @@ class Content_Views_CiviCRM_Settings_Display {
 	 * @return array $options Contact field options
 	 */
 	public function contact_fields_display_settings() {
+
 		return [
-			'label' => [ 'text' => __( 'Contact settings', 'content-views-civicrm' ) ],
-			'extra_setting' => [
+			'label' => [ 'text' => __( 'Contact display settings', 'content-views-civicrm' ) ],
+			'extra_setting'	 => [
 				'params' => [
-					'wrap-class' => PT_CV_Html::html_group_class(),
-					'wrap-id' => PT_CV_Html::html_group_id( 'contact-settings' )
+					'wrap-class' => PT_CV_Html::html_panel_group_class(),
+					'wrap-id'	 => PT_CV_Html::html_panel_group_id( PT_CV_Functions::string_random() )
 				]
 			],
 			'dependence' => [ 'content-type', [ 'civicrm_contact' ] ],
 			'params' => [
 				[
 					'type' => 'group',
-					'params' => $this->contact_fields_group_options()
-					/*[
+					'params' => [
+						// contact type
 						[
-							'label' => [ 'text' => __( 'Core fields', 'content-views-civicrm' ) ],
-							'extra_setting'	 => [
-								'params' => [
-									'group-class' => PT_CV_PREFIX . 'field-setting' . ' ' . PT_CV_PREFIX . 'contact-field-settings',
-									'wrap-class' => PT_CV_Html::html_group_class() . ' ' . PT_CV_PREFIX . 'contact-field-settings'
-								]
-							],
+							'label' => [ 'text' => __( 'Contact fields', 'content-views-civicrm' ) ],
 							'params' => [
 								[
-									'type' => 'group',
-									'params' => $this->get_contact_fields()
+									'type' => 'select',
+									'name' => 'contact_fields',
+									'options' => $this->get_contact_fields_options(),
+									'class' => 'select2',
+									'multiple' => 1
 								]
 							]
 						]
-					]*/
+					]
 				]
 			]
 		];
-	}
 
-	/**
-	 * Contact field group.
-	 * @since 0.1
-	 * @return array $options
-	 */
-	public function contact_fields_group_options() {
-		return [
-			[
-				'label' => [
-					'text' => __( 'Contact fields', 'content-views-civicrm' )
-				],
-				'extra_setting'	 => [
-					'params' => [
-						'group-class'	 => PT_CV_PREFIX . 'field-setting' . ' ' . PT_CV_PREFIX . 'contact-fields-settings',
-						'wrap-class'	 => PT_CV_Html::html_group_class() . ' ' . PT_CV_PREFIX . 'contact-fields-settings'
-					]
-				],
-				'params' => [
-					[
-						'type' => 'group',
-						'params' => $this->get_contact_fields_options()
-					]
-				]
-			]
-		];
 	}
 
 	/**
@@ -185,28 +169,27 @@ class Content_Views_CiviCRM_Settings_Display {
 	 * @return array $options
 	 */
 	public function get_contact_fields_options() {
-		
-		$fields = \Civi\Api4\Contact::getFields()->execute();
 
-		return array_reduce( ( array ) $fields, function( $fields, $field ) {
+		return array_reduce( $this->get_fields_for( 'Contact' ), function( $fields, $field ) {
 
-			$fields[] = [
-				'label'	=> [ 'text' => '' ],
-				'extra_setting' => [
-					'params' => [ 'width' => 12 ]
-				],
-				'params' => [
-					[
-						'type'		 => 'checkbox',
-						'name'		 => 'civi-contact-' . $field['name'],
-						'options'	 => PT_CV_Values::yes_no( 'yes', __( $field['title'], 'content-views-civicrm' ) )
-					]
-				]
-			];
+			$fields[$field['name']] = $field['title'];
 
 			return $fields;
 
 		}, [] );
+
+	}
+
+	/**
+	 * Retrieve fields for an entity.
+	 *
+	 * @since 0.1
+	 * @return array $options
+	 */
+	public function get_fields_for( $entity ) {
+
+		return $this->cvc->api->call_values( $entity, 'getfields', [ 'action' => 'get' ] );
+
 	}
 
 }
