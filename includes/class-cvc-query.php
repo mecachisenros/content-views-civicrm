@@ -48,14 +48,33 @@ class Content_Views_CiviCRM_Query {
 
 			$api_params = [];
 
+			// get contact fields display settings
+			$api_params['return'] = array_merge(
+				['sort_name'],
+				current(
+					PT_CV_Functions::settings_values_by_prefix(
+						PT_CV_PREFIX . 'contact_fields',
+						true
+					)
+				)
+			);
+
 			if ( ! empty( $view_settings[PT_CV_PREFIX . 'contact_type'] ) )
 				$api_params['contact_type'] = [ 'IN' => $view_settings[ PT_CV_PREFIX . 'contact_type'] ];
 
 			if ( ! empty( $view_settings[PT_CV_PREFIX . 'contact_sub_type'] ) )
 				$api_params['contact_sub_type'] = [ 'IN' => $view_settings[PT_CV_PREFIX . 'contact_sub_type'] ];
 
-			if ( ! empty( $view_settings[PT_CV_PREFIX . 'group_include'] ) )
-				$api_params['group_include'] = $view_settings[PT_CV_PREFIX . 'group_include'];
+			if ( ! empty( $view_settings[PT_CV_PREFIX . 'group_include'] ) ) {
+
+				$api_params['group'] = [
+					'IN' => $view_settings[PT_CV_PREFIX . 'group_include']
+				];
+
+				// make sure we get the groups field
+				$api_params['return'] = array_merge( $api_params['return'], ['group'] );
+
+			}
 
 			if ( ! empty( $view_settings[PT_CV_PREFIX . 'group_exclude'] ) )
 				$api_params['group_exclude'] = $view_settings[PT_CV_PREFIX . 'group_exclude'];
@@ -100,6 +119,12 @@ class Content_Views_CiviCRM_Query {
 
 			$contacts = $this->cvc->api->call_values( 'Contact', 'get', $args['civicrm_api_params'] );
 
+			if ( ! empty( $args['civicrm_api_params']['group_exclude'] ) )
+				$contacts = $this->filter_excluded_group_contacts(
+					$contacts,
+					$args['civicrm_api_params']['group_exclude']
+				);
+
 			// mock WP_Posts contacts
 			foreach ( $contacts as $contact ) {
 				$post = new WP_Post( (object) [] );
@@ -127,5 +152,31 @@ class Content_Views_CiviCRM_Query {
 			return $posts;
 
 		}, 10, 2 );
+	}
+
+	/**
+	 * filters out contacts for given groups.
+	 *
+	 * @since 0.1
+	 * @param array $contacts The contacts
+	 * @param array $groups The groups to filter out
+	 * @return array $contacts The filtered contacts
+	 */
+	public function filter_excluded_group_contacts( array $contacts, array $groups ) {
+
+		if ( empty( $contacts ) ) return $contacts;
+
+		// filter out excluded groups
+		return array_filter(
+			$contacts,
+			function( $contact ) use ( $groups ) {
+
+				return empty(
+					array_intersect( $groups, explode( ',', $contact['groups'] ) )
+				);
+
+			}
+		);
+
 	}
 }
